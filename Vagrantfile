@@ -1,13 +1,12 @@
 Vagrant.configure("2") do |config|
 
-  config.vm.box     = 'PythonDevBootstrap_13_10'
-  config.vm.box_url = "http://puppet-vagrant-boxes.puppetlabs.com/ubuntu-1310-x64-virtualbox-nocm.box"
+  config.vm.box     = 'puppetlabs/ubuntu-14.04-64-nocm'
 
   #network
-  config.vm.network :private_network, ip: "192.168.33.10"
+  config.vm.network "private_network", ip: "192.168.33.10"
   
   #shared
-  config.vm.synced_folder "./Development/Projects", "/projects", type: 'nfs'
+  #config.vm.synced_folder "/home/mitch/prog", "/projects", type: 'nfs'
 
   #virtualbox
   if defined? VagrantVbguest

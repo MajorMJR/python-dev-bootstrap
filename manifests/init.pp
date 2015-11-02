@@ -1,13 +1,8 @@
 import "sql.pp"
 
 class core {
-    exec { "apt-oldrepos":
-      command => "/usr/bin/sudo sed -i -re 's/([a-z]{2}\.)?archive.ubuntu.com|security.ubuntu.com/old-releases.ubuntu.com/g' /etc/apt/sources.list"
-    }
-    
     exec { "apt-update":
       command => "/usr/bin/sudo apt-get -y update"
-      require => Exec['apt-oldrepos']
     }
   
     package { 
@@ -39,7 +34,7 @@ class pythondev {
     package {
         [ "dpkg-dev", "swig", "python2.7-dev", "libwebkitgtk-dev", "libjpeg-dev", "libtiff4-dev",
         "checkinstall", "ubuntu-restricted-extras", "freeglut3", "freeglut3-dev", "libgtk2.0-dev", "libsdl1.2-dev",
-        "libgstreamer-plugins-base0.10-dev", "libwxgtk2.8-dev" ]:
+        "libgstreamer-plugins-base0.10-dev" ]:
         ensure => ["installed"],
         require => Exec['apt-update']    
     }
@@ -54,27 +49,6 @@ class pythondev {
       "RunSnakeRun":
       command => "/usr/bin/sudo pip install RunSnakeRun",
       require => Package["python-dev", "python-pip"]
-    }
-
-    exec {
-      "wx-from-source":
-      cwd => "/tmp",
-      command => "/usr/bin/apt-get source -d wxwidgets2.8 && /usr/bin/dpkg-source -x wxwidgets2.8_2.8.12.1-6ubuntu2.dsc",
-      #creates => "/tmp/wxwidgets2.8-2.8.12.1/wxPython",
-      creates => '/usr/local/lib/python2.7/dist-packages/wx/lib/__init__.pyc',
-      path => "/bin:/usr/bin:/usr/local/bin",
-
-      require => [Exec['apt-update'], Package["python-dev", "python-pip", "dpkg-dev"]]
-    }
-
-    exec {
-      "compile-wx-from-source":
-      cwd => "/tmp/wxwidgets2.8-2.8.12.1/wxPython",
-      command => "/usr/bin/sudo python setup.py install",
-      creates => '/usr/local/lib/python2.7/dist-packages/wx/lib/__init__.pyc',
-      path => '/bin:/usr/bin:/usr/local/bin',
-
-      require => Exec['wx-from-source']
     }
 }
 
@@ -196,39 +170,11 @@ class pythononwheels {
 }
 
 
-class gui {
-
-  package {
-    "ubuntu-desktop":
-    ensure => ["installed"],
-  }
-
-  package { 
-    [ "vim-gtk" ]:
-      ensure => ["installed"],
-      require => Package["ubuntu-desktop"]
-  }
-  
-  exec {
-    "repo":
-    command => "/usr/bin/sudo add-apt-repository ppa:webupd8team/sublime-text-2 && /usr/bin/sudo apt-get -y update",
-    require => Package["python-software-properties"],
-  }
-
-  package { 
-    [ "sublime-text" ]:
-      ensure => ["installed"],
-      require => [Package["ubuntu-desktop"], Exec["repo"]]
-  }
-  
-}
-
 class keepuptodate {
     
     exec {
         "apt-upgrade":
         command => "/usr/bin/sudo apt-get -y upgrade",
-        require => [Package["ubuntu-desktop"], Exec["wx-from-source"]],
     }
 
 }
@@ -303,11 +249,9 @@ include core
 include python
 include pythondev
 include networking
-include gui
 include keepuptodate
 include web
 include sql
-include mongodb
 
 #include science
 #include pythononwheels
